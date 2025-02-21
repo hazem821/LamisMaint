@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الصيانة - قسم المستودع</title>
+    <style>
+        /* تحسين تنسيق النموذج للغة العربية من اليمين لليسار */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: right;
+        }
+        header {
+            background-color: #1E3A8A;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        header img {
+            width: 50px;
+            vertical-align: middle;
+        }
+        h1 {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        select, input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #1E3A8A;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1e2a61;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="lamis-logo.png" alt="شعار شركة لميس لصناعة المنظفات">
+    <h1>تطبيق الصيانة - قسم المستودع</h1>
+</header>
+
+<div class="container">
+    <div class="section" id="warehouse-section">
+        <h2>قسم المستودع</h2>
+        <table id="requests-table" border="1">
+            <thead>
+                <tr>
+                    <th>رقم الطلب</th>
+                    <th>اسم الماكينة</th>
+                    <th>وصف العطل</th>
+                    <th>حالة القطع</th>
+                </tr>
+            </thead>
+            <tbody id="requests-tbody">
+                <!-- سيتم ملء الجدول هنا باستخدام JavaScript -->
+            </tbody>
+        </table>
+
+        <div id="details-section" style="display: none;">
+            <h3>تفاصيل الطلب</h3>
+            <table id="parts-table" border="1">
+                <thead>
+                    <tr>
+                        <th>رقم</th>
+                        <th>الصنف</th>
+                        <th>الوحدة</th>
+                        <th>الكمية</th>
+                        <th>مكان العمل</th>
+                        <th>موجود في المستودع</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button onclick="deliverParts()">تسليم القطع</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // الدالة التي تقوم بتحميل الطلبات من localStorage وتحديث الجدول
+    function loadRequests() {
+        const requests = JSON.parse(localStorage.getItem("pendingRequests")) || [];
+        const requestsTbody = document.getElementById("requests-tbody");
+
+        requests.forEach((request, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><button onclick="showRequestDetails(${index})">${index + 1}</button></td>
+                <td>${request.machineName}</td>
+                <td>${request.issueDescription}</td>
+                <td><button onclick="showRequestDetails(${index})">عرض القطع</button></td>
+            `;
+            requestsTbody.appendChild(row);
+        });
+    }
+
+    // الدالة التي تظهر تفاصيل الطلب عند الضغط على الرقم المتسلسل
+    function showRequestDetails(index) {
+        const requests = JSON.parse(localStorage.getItem("pendingRequests")) || [];
+        const selectedRequest = requests[index];
+
+        const detailsSection = document.getElementById("details-section");
+        detailsSection.style.display = 'block';
+
+        const partsTableBody = document.getElementById("parts-table").getElementsByTagName('tbody')[0];
+        partsTableBody.innerHTML = '';
+
+        selectedRequest.parts.forEach((part, i) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${part.item}</td>
+                <td>${part.unit}</td>
+                <td>${part.quantity}</td>
+                <td>${part.location}</td>
+                <td><input type="checkbox" name="part-${i}" class="part-checkbox"></td>
+            `;
+            partsTableBody.appendChild(row);
+        });
+    }
+
+    // الدالة التي تنفذ عند الضغط على "تسليم القطع"
+    function deliverParts() {
+        const checkboxes = document.querySelectorAll('.part-checkbox');
+        let allChecked = true;
+
+        checkboxes.forEach(checkbox => {
+            if (!checkbox.checked) {
+                allChecked = false;
+            }
+        });
+
+        if (allChecked) {
+            alert("تم تسليم جميع القطع بنجاح!");
+            const requestIndex = parseInt(localStorage.getItem("selectedRequestIndex"));
+            const requests = JSON.parse(localStorage.getItem("pendingRequests"));
+            requests.splice(requestIndex, 1);
+            localStorage.setItem("pendingRequests", JSON.stringify(requests));
+            location.reload();
+        } else {
+            alert("يرجى التحقق من جميع القطع الموجودة في المستودع.");
+        }
+    }
+
+    // عند تحميل الصفحة، نقوم بتحميل الطلبات
+    document.addEventListener("DOMContentLoaded", loadRequests);
+</script>
+
+</body>
+</html>

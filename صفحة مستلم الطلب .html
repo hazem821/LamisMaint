@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الصيانة - قسم مستلم الطلب</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: right;
+        }
+        header {
+            background-color: #1E3A8A;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        header img {
+            width: 50px;
+            vertical-align: middle;
+        }
+        h1 {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        select, input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #1E3A8A;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1e2a61;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="lamis-logo.png" alt="شعار شركة لميس لصناعة المنظفات">
+    <h1>تطبيق الصيانة - قسم مستلم الطلب</h1>
+</header>
+
+<div class="container">
+    <div class="section" id="maintenance-request">
+        <h2>قسم مستلم الطلب (المسؤول عن الصيانة)</h2>
+        <form id="maintenanceForm">
+            <div class="form-group">
+                <label for="receiver-name">اسم مستلم الخدمة:</label>
+                <input type="text" id="receiver-name" placeholder="أدخل اسم مستلم الخدمة" required>
+            </div>
+
+            <div class="form-group">
+                <label for="condition-description">شرح الحالة والتوصيات:</label>
+                <textarea id="condition-description" rows="4" placeholder="أدخل شرح الحالة والتوصيات" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="required-parts">القطع اللازمة للصيانة:</label>
+                <table id="parts-table">
+                    <thead>
+                        <tr>
+                            <th>رقم</th>
+                            <th>الصنف</th>
+                            <th>الوحدة</th>
+                            <th>الكمية</th>
+                            <th>مكان العمل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- خمسة أسطر للقطع المطلوبة -->
+                        <tr><td>1</td><td><input type="text"></td><td><input type="text"></td><td><input type="number"></td><td><input type="text"></td></tr>
+                        <tr><td>2</td><td><input type="text"></td><td><input type="text"></td><td><input type="number"></td><td><input type="text"></td></tr>
+                        <tr><td>3</td><td><input type="text"></td><td><input type="text"></td><td><input type="number"></td><td><input type="text"></td></tr>
+                        <tr><td>4</td><td><input type="text"></td><td><input type="text"></td><td><input type="number"></td><td><input type="text"></td></tr>
+                        <tr><td>5</td><td><input type="text"></td><td><input type="text"></td><td><input type="number"></td><td><input type="text"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="button" id="finishRequest" onclick="finishRequest()">إنهاء الطلب</button>
+        </form>
+    </div>
+</div>
+
+<!-- تضمين مكتبة EmailJS -->
+<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        emailjs.init("My Default Template123");  // تهيئة EmailJS بمعرف المستخدم الخاص بك
+    });
+
+    function finishRequest() {
+        const receiverName = document.getElementById("receiver-name").value;
+        const conditionDescription = document.getElementById("condition-description").value;
+
+        const parts = [];
+        const rows = document.querySelectorAll("#parts-table tbody tr");
+        rows.forEach(row => {
+            const item = row.cells[1].querySelector("input").value;
+            const unit = row.cells[2].querySelector("input").value;
+            const quantity = row.cells[3].querySelector("input").value;
+            const location = row.cells[4].querySelector("input").value;
+            if (item || unit || quantity || location) {
+                parts.push(`الصنف: ${item}, الوحدة: ${unit}, الكمية: ${quantity}, مكان العمل: ${location}`);
+            }
+        });
+
+        const emailData = {
+            to_email: "hazem090@gmail.com", 
+            receiver_name: receiverName,
+            condition_description: conditionDescription,
+            parts_list: parts.join("\n"),
+            date_time: new Date().toLocaleString()
+        };
+
+        // إرسال البريد عبر EmailJS
+        emailjs.send("service_s1e2vx8", "template_123", emailData)
+            .then(function(response) {
+                console.log("تم إرسال البريد بنجاح:", response);
+                alert("تم إرسال الطلب عبر البريد الإلكتروني بنجاح.");
+                
+                // حفظ البيانات في الجلسة
+                sessionStorage.setItem("requestData", JSON.stringify(emailData));
+
+                // الانتقال إلى صفحة "صفحة إنهاء .html"
+                window.location.href = 'صفحة إنهاء .html';
+            }, function(error) {
+                console.log("خطأ في إرسال البريد:", error);
+                alert("حدث خطأ أثناء إرسال البريد الإلكتروني.");
+            });
+    }
+</script>
+
+</body>
+</html>
